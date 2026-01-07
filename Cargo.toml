@@ -1,0 +1,9 @@
+[package]
+name = "interferometr"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.25"
+egui = "0.25"
+chrono = "0.4"
