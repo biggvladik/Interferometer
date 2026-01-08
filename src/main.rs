@@ -45,6 +45,9 @@ struct FixedPanelsApp {
     temperature_value: String,
     voltage_value: String,
     
+    // ДАННЫЕ ДЛЯ ПРАВОЙ ПАНЕЛИ
+    repeat_value: String,     // Новое поле для Repeat
+    
     // ДАННЫЕ ДЛЯ СЛАЙДЕРА В НИЖНЕЙ ПАНЕЛИ
     slider_min: f32,          // Минимальное значение слайдера
     slider_max: f32,          // Максимальное значение слайдера
@@ -83,6 +86,9 @@ impl FixedPanelsApp {
 
             temperature_value: "25°C".to_string(),
             voltage_value: "24V".to_string(),
+            
+            // Данные для правой панели
+            repeat_value: "1".to_string(),            // Начальное значение Repeat
             
             // Инициализация данных для слайдера
             slider_min: 0.0,
@@ -742,7 +748,7 @@ impl eframe::App for FixedPanelsApp {
                     // Небольшой отступ между панелями
                     ui.add_space(5.0);
                     
-                    // ПРАВАЯ ПАНЕЛЬ (остается без изменений)
+                    // ПРАВАЯ ПАНЕЛЬ (с добавленным Repeat в одну строку и отступом от правой границы)
                     let right_response = ui.allocate_response(
                         egui::vec2(self.panel_width, self.panel_height),
                         egui::Sense::hover()
@@ -755,7 +761,44 @@ impl eframe::App for FixedPanelsApp {
                         egui::Stroke::new(0.1, egui::Color32::WHITE)
                     );
                     
-                    
+                    // Содержимое правой панели С ОТСТУПОМ ОТ ГРАНИЦ
+                    ui.allocate_ui_at_rect(right_response.rect, |ui| {
+                        // Создаем меньшую область с отступами
+                        let content_rect = right_response.rect.shrink(15.0); // Отступ по 15px со всех сторон
+                        
+                        // Используем эту область для размещения содержимого
+                        ui.allocate_ui_at_rect(content_rect, |ui| {
+                            ui.vertical_centered(|ui| {
+                                // Отступ сверху
+                                ui.add_space(10.0);
+                                
+                                // Label и LineEdit для Repeat В ОДНУ СТРОКУ
+                                // Аналогично тому, как сделано для Step и Speed
+                                ui.horizontal(|ui| {
+                                    // Метка Repeat - слева
+                                    ui.label(
+                                        egui::RichText::new("Repeat")
+                                            .size(12.0)  // Такой же размер шрифта, как у Step и Speed
+                                    );
+                                    
+                                    // Отступ между Label и LineEdit
+                                    ui.add_space(5.0);
+                                    
+                                    // LineEdit для Repeat - справа
+                                    // Уменьшаем ширину, чтобы поместиться в отступах
+                                    ui.add(
+                                        egui::TextEdit::singleline(&mut self.repeat_value)
+                                            .desired_width(50.0)  // Немного уменьшили ширину
+                                            .font(egui::TextStyle::Monospace)  // Моноширинный шрифт
+                                            .hint_text("1")  // Подсказка
+                                    );
+                                });
+                                
+                                // Отступ снизу для баланса
+                                ui.add_space(10.0);
+                            });
+                        });
+                    });
                 });
             });
         });
