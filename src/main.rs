@@ -41,15 +41,15 @@ struct FixedPanelsApp {
     step_value: String,
     step_index: usize,
     speed_value: String,
-    step_value_f32: f32,
 
-    speed_status: String,
     temperature_value: String,
     voltage_value: String,
-    power_status: String,
-    power_switch_on: bool,
-    has_error: bool,
-    ext_off: bool,
+    
+    // ДАННЫЕ ДЛЯ СЛАЙДЕРА В НИЖНЕЙ ПАНЕЛИ
+    slider_min: f32,          // Минимальное значение слайдера
+    slider_max: f32,          // Максимальное значение слайдера
+    slider_current: f32,      // Текущая позиция (первый ползунок)
+    slider_destination: f32,  // Целевая позиция (второй ползунок)
 }
 
 impl FixedPanelsApp {
@@ -59,7 +59,7 @@ impl FixedPanelsApp {
             panel_width: 120.0,      // Ширина боковых панелей
             panel_height: 200.0,     // Высота боковых панелей
             top_height: 80.0,       // Высота верхней центральной области
-            bottom_height: 120.0,    // Высота нижней центральной области
+            bottom_height: 105.0,    // Высота нижней центральной области
             
             // Ширины трех секций верхней центральной области
             section1_width: 195.0,
@@ -67,28 +67,45 @@ impl FixedPanelsApp {
             section3_width: 150.0,
             
             // Ширина нижней центральной панели (теперь независимая!)
-            bottom_width: 795.0,     // Можно задать любую ширину
+            bottom_width: 684.0,     // Можно задать любую ширину
             
             // Данные для левой панели
             positioner_name: String::from("Positioner_001"),  // Начальное значение
             axis_name: String::from("TrS"),                   // Название оси
 
-            current_value: String::from("0.0"),
-            destination_value: String::from("0.0"),
+            current_value: String::from("1250.0"),     // Начальное значение синхронизировано со слайдером
+            destination_value: String::from("1500.0"), // Начальное значение синхронизировано со слайдером
             is_moving: false,
 
             step_value: "1/4".to_string(),
             step_index: 1,
             speed_value: "1.0".to_string(),
-            step_value_f32: 0.125,
 
-            speed_status: "FULL".to_string(),
             temperature_value: "25°C".to_string(),
             voltage_value: "24V".to_string(),
-            power_status: "FULL".to_string(),
-            power_switch_on: true,
-            has_error: false,
-            ext_off: false,
+            
+            // Инициализация данных для слайдера
+            slider_min: 0.0,
+            slider_max: 2000.0,
+            slider_current: 1250.0,     // Начальная текущая позиция
+            slider_destination: 1500.0,  // Начальная целевая позиция
+        }
+    }
+    
+    // Метод для синхронизации значений из строк в числа и обратно
+    fn update_current_from_string(&mut self) {
+        if let Ok(value) = self.current_value.parse::<f32>() {
+            self.slider_current = value.clamp(self.slider_min, self.slider_max);
+            // Обновляем строковое значение, чтобы оно соответствовало границам
+            self.current_value = format!("{:.1}", self.slider_current);
+        }
+    }
+    
+    fn update_destination_from_string(&mut self) {
+        if let Ok(value) = self.destination_value.parse::<f32>() {
+            self.slider_destination = value.clamp(self.slider_min, self.slider_max);
+            // Обновляем строковое значение, чтобы оно соответствовало границам
+            self.destination_value = format!("{:.1}", self.slider_destination);
         }
     }
 }
@@ -101,11 +118,17 @@ impl Default for FixedPanelsApp {
 
 impl eframe::App for FixedPanelsApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Синхронизация при нажатии Enter в полях ввода
+        if ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
+            self.update_current_from_string();
+            self.update_destination_from_string();
+        }
+        
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::horizontal().show(ui, |ui| {
                 // Главный горизонтальный контейнер для ВСЕХ панелей
                 ui.horizontal(|ui| {
-                    // ЛЕВАЯ ПАНЕЛЬ
+                    // ЛЕВАЯ ПАНЕЛЬ (остается без изменений)
                     let left_response = ui.allocate_response(
                         egui::vec2(self.panel_width, self.panel_height),
                         egui::Sense::hover()
@@ -114,11 +137,11 @@ impl eframe::App for FixedPanelsApp {
                     // Рисуем рамку левой панели
                     ui.painter().rect_stroke(
                         left_response.rect,
-                        2.0,
+                        1.0,
                         egui::Stroke::new(0.1, egui::Color32::WHITE)
                     );
                     
-                    // Содержимое левой панели
+                    // Содержимое левой панели (без изменений)
                     ui.allocate_ui_at_rect(left_response.rect, |ui| {
                         ui.vertical_centered(|ui| {
                             let label_font_size = 12.0;
@@ -212,14 +235,14 @@ impl eframe::App for FixedPanelsApp {
                     
                     ui.add_space(1.0);
                     
-                    // ЦЕНТРАЛЬНАЯ ОБЛАСТЬ
+                    // ЦЕНТРАЛЬНАЯ ОБЛАСТЬ (верхняя часть)
                     ui.vertical(|ui| {
                         // ВЕРХНЯЯ ЧАСТЬ - 3 СЕКЦИИ РЯДОМ
                         ui.horizontal(|ui| {
                             // Секция 1 - используем Frame для правильной компоновки
                             let sec1_frame = egui::Frame::none()
                                 .inner_margin(4.0)
-                                .stroke(egui::Stroke::new(1.0, egui::Color32::WHITE));
+                                .stroke(egui::Stroke::new(0.1, egui::Color32::WHITE));
                             
                             sec1_frame.show(ui, |ui| {
                                 ui.set_width(self.section1_width);
@@ -244,12 +267,17 @@ impl eframe::App for FixedPanelsApp {
                                         
                                         ui.add_space(5.0);
                                         
-                                        // Current с текущим значением
-                                        ui.add(
-                                            egui::TextEdit::singleline(&mut self.current_value)
-                                                .desired_width(element_width)
-                                                .interactive(false) // Нельзя редактировать
-                                        );
+                                        // Current с текущим значением - СИНХРОНИЗИРОВАНО СО СЛАЙДЕРОМ
+                                        let current_edit = egui::TextEdit::singleline(&mut self.current_value)
+                                            .desired_width(element_width)
+                                            .interactive(true); // Можно редактировать
+                                        
+                                        let current_response = ui.add(current_edit);
+                                        
+                                        // Если поле изменилось, синхронизируем со слайдером
+                                        if current_response.changed() || current_response.lost_focus() {
+                                            self.update_current_from_string();
+                                        }
                                         
                                         ui.add_space(5.0);
                                         
@@ -263,7 +291,8 @@ impl eframe::App for FixedPanelsApp {
 
                                         if ui.add(button).clicked() {
                                             self.is_moving = true;
-                                            println!("Начато движение к: {}", self.destination_value);
+                                            println!("Начато движение от {} к {}", 
+                                                    self.slider_current, self.slider_destination);
                                         }
                                     });
                                     
@@ -277,11 +306,17 @@ impl eframe::App for FixedPanelsApp {
                                         
                                         ui.add_space(5.0);
                                         
-                                        // LineEdit БЕЗ Frame, с таким же размером
-                                        ui.add(
-                                            egui::TextEdit::singleline(&mut self.destination_value)
-                                                .desired_width(element_width)
-                                        );
+                                        // LineEdit для Destination - СИНХРОНИЗИРОВАНО СО СЛАЙДЕРОМ
+                                        let dest_edit = egui::TextEdit::singleline(&mut self.destination_value)
+                                            .desired_width(element_width)
+                                            .interactive(true);
+                                        
+                                        let dest_response = ui.add(dest_edit);
+                                        
+                                        // Если поле изменилось, синхронизируем со слайдером
+                                        if dest_response.changed() || dest_response.lost_focus() {
+                                            self.update_destination_from_string();
+                                        }
                                         
                                         ui.add_space(5.0);
                                         
@@ -309,7 +344,7 @@ impl eframe::App for FixedPanelsApp {
                                     top: 8.0,      // Отступ сверху от границы
                                     bottom: 0.0,
                                 })
-                                .stroke(egui::Stroke::new(1.0, egui::Color32::WHITE));
+                                .stroke(egui::Stroke::new(0.1, egui::Color32::WHITE));
                             
                             sec2_frame.show(ui, |ui| {
                                 ui.set_width(self.section2_width);
@@ -480,7 +515,7 @@ impl eframe::App for FixedPanelsApp {
                             // Секция 3 - ОДНА КОЛОНКА с температурой и напряжением
                             let sec3_frame = egui::Frame::none()
                                 .inner_margin(4.0)
-                                .stroke(egui::Stroke::new(1.0, egui::Color32::WHITE));
+                                .stroke(egui::Stroke::new(0.1, egui::Color32::WHITE));
                             
                             sec3_frame.show(ui, |ui| {
                                 ui.set_width(self.section3_width);
@@ -534,7 +569,7 @@ impl eframe::App for FixedPanelsApp {
                         // Небольшой отступ между верхней и нижней частями
                         ui.add_space(5.0);
                         
-                        // НИЖНЯЯ ЧАСТЬ - ОДНА ПАНЕЛЬ (независимая ширина!)
+                        // НИЖНЯЯ ЧАСТЬ - БОЛЬШОЙ СЛАЙДЕР ПОСЕРЕДИНЕ
                         let bottom_response = ui.allocate_response(
                             egui::vec2(self.bottom_width, self.bottom_height),
                             egui::Sense::hover()
@@ -542,25 +577,164 @@ impl eframe::App for FixedPanelsApp {
                         
                         ui.painter().rect_stroke(
                             bottom_response.rect,
-                            5.0,
-                            egui::Stroke::new(2.0, egui::Color32::RED)
+                            1.0,
+                            egui::Stroke::new(0.1, egui::Color32::WHITE)
                         );
                         
                         ui.allocate_ui_at_rect(bottom_response.rect, |ui| {
                             ui.vertical_centered(|ui| {
-                                ui.heading("Нижняя область");
-                                ui.separator();
-                                ui.label(format!("{} × {} px", self.bottom_width, self.bottom_height));
-                                ui.horizontal(|ui| {
-                                    ui.label("Текущая: 1250");
-                                    ui.add_space(20.0);
-                                    ui.label("Целевая: 1500");
-                                });
-                                ui.horizontal(|ui| {
-                                    if ui.button("Старт").clicked() {}
-                                    if ui.button("Стоп").clicked() {}
-                                    if ui.button("Сброс").clicked() {}
-                                });
+                                // БОЛЬШОЙ СЛАЙДЕР, ЗАНИМАЮЩИЙ БОЛЬШУЮ ЧАСТЬ ПРОСТРАНСТВА
+                                let slider_width = self.bottom_width - 20.0; // Уменьшаем отступы, чтобы подписи поместились
+                                let slider_height = 40.0;
+                                
+                                ui.add_space(25.0);
+                                
+                                // Выделяем область для слайдера
+                                let slider_response = ui.allocate_response(
+                                    egui::vec2(slider_width, slider_height),
+                                    egui::Sense::click_and_drag()
+                                );
+                                
+                                let rect = slider_response.rect;
+                                
+                                // Рисуем фон слайдера
+                                ui.painter().rect_filled(
+                                    rect,
+                                    5.0,
+                                    egui::Color32::from_rgb(60, 60, 70)
+                                );
+                                
+                                // Вычисляем позиции ползунков
+                                let value_to_x = |value: f32| -> f32 {
+                                    let normalized = (value - self.slider_min) / (self.slider_max - self.slider_min);
+                                    rect.left() + normalized * rect.width()
+                                };
+                                
+                                let x_to_value = |x: f32| -> f32 {
+                                    let normalized = (x - rect.left()) / rect.width();
+                                    self.slider_min + normalized * (self.slider_max - self.slider_min)
+                                };
+                                
+                                let current_x = value_to_x(self.slider_current);
+                                let dest_x = value_to_x(self.slider_destination);
+                                
+                                // Рисуем линию между ползунками
+                                ui.painter().line_segment(
+                                    [egui::pos2(current_x, rect.center().y), 
+                                     egui::pos2(dest_x, rect.center().y)],
+                                    egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 150, 255))
+                                );
+                                
+                                // Рисуем шкалу (основную линию)
+                                ui.painter().line_segment(
+                                    [egui::pos2(rect.left(), rect.center().y), 
+                                     egui::pos2(rect.right(), rect.center().y)],
+                                    egui::Stroke::new(2.0, egui::Color32::from_rgb(100, 100, 110))
+                                );
+                                
+                                // Добавляем деления шкалы и подписи под ними
+                                for i in 0..=10 {
+                                    let x = rect.left() + (i as f32 / 10.0) * rect.width();
+                                    let height = if i % 5 == 0 { 12.0 } else { 6.0 };
+                                    let stroke_width = if i % 5 == 0 { 1.5 } else { 1.0 };
+                                    
+                                    ui.painter().line_segment(
+                                        [egui::pos2(x, rect.center().y - height/2.0),
+                                         egui::pos2(x, rect.center().y + height/2.0)],
+                                        egui::Stroke::new(stroke_width, egui::Color32::from_rgb(140, 140, 150))
+                                    );
+                                    
+                                    // Подписи для основных делений (каждое 5-ое) - теперь только 0 и 2000
+                                    if i == 0 || i == 10 {
+                                        let value = if i == 0 { self.slider_min } else { self.slider_max };
+                                        // Подпись располагаем по центру под делением
+                                        ui.painter().text(
+                                            egui::pos2(x, rect.bottom() + 5.0),
+                                            egui::Align2::CENTER_TOP,
+                                            format!("{:.0}", value),
+                                            egui::FontId::proportional(11.0),
+                                            egui::Color32::from_rgb(180, 180, 190)
+                                        );
+                                    }
+                                }
+                                
+                                // Первый ползунок (Current - зеленый)
+                                let current_rect = egui::Rect::from_center_size(
+                                    egui::pos2(current_x, rect.center().y),
+                                    egui::vec2(24.0, 24.0)
+                                );
+                                
+                                ui.painter().circle_filled(
+                                    current_rect.center(),
+                                    12.0,
+                                    egui::Color32::from_rgb(0, 200, 100)
+                                );
+                                
+                                // Белая обводка для ползунка
+                                ui.painter().circle_stroke(
+                                    current_rect.center(),
+                                    12.0,
+                                    egui::Stroke::new(2.0, egui::Color32::WHITE)
+                                );
+                                
+                                ui.painter().text(
+                                    egui::pos2(current_x, current_rect.top() - 18.0),
+                                    egui::Align2::CENTER_BOTTOM,
+                                    "Current",
+                                    egui::FontId::proportional(11.0),
+                                    egui::Color32::from_rgb(0, 200, 150)
+                                );
+                                
+                                // Второй ползунок (Destination - синий)
+                                let dest_rect = egui::Rect::from_center_size(
+                                    egui::pos2(dest_x, rect.center().y),
+                                    egui::vec2(24.0, 24.0)
+                                );
+                                
+                                ui.painter().circle_filled(
+                                    dest_rect.center(),
+                                    12.0,
+                                    egui::Color32::from_rgb(0, 150, 255)
+                                );
+                                
+                                // Белая обводка для ползунка
+                                ui.painter().circle_stroke(
+                                    dest_rect.center(),
+                                    12.0,
+                                    egui::Stroke::new(2.0, egui::Color32::WHITE)
+                                );
+                                
+                                ui.painter().text(
+                                    egui::pos2(dest_x, dest_rect.top() - 18.0),
+                                    egui::Align2::CENTER_BOTTOM,
+                                    "Destination",
+                                    egui::FontId::proportional(11.0),
+                                    egui::Color32::from_rgb(0, 150, 255)
+                                );
+                                
+                                // Обработка взаимодействия с ползунками
+                                if slider_response.dragged() {
+                                    let pointer_pos = ui.input(|i| i.pointer.interact_pos());
+                                    if let Some(pos) = pointer_pos {
+                                        let new_value = x_to_value(pos.x);
+                                        
+                                        // Определяем, какой ползунок ближе
+                                        let dist_to_current = (pos.x - current_x).abs();
+                                        let dist_to_dest = (pos.x - dest_x).abs();
+                                        
+                                        if dist_to_current < dist_to_dest {
+                                            self.slider_current = new_value.clamp(self.slider_min, self.slider_max);
+                                            // Синхронизируем со строковым значением
+                                            self.current_value = format!("{:.1}", self.slider_current);
+                                        } else {
+                                            self.slider_destination = new_value.clamp(self.slider_min, self.slider_max);
+                                            // Синхронизируем со строковым значением
+                                            self.destination_value = format!("{:.1}", self.slider_destination);
+                                        }
+                                    }
+                                }
+                                
+                                ui.add_space(25.0);
                             });
                         });
                     });
@@ -568,7 +742,7 @@ impl eframe::App for FixedPanelsApp {
                     // Небольшой отступ между панелями
                     ui.add_space(5.0);
                     
-                    // ПРАВАЯ ПАНЕЛЬ
+                    // ПРАВАЯ ПАНЕЛЬ (остается без изменений)
                     let right_response = ui.allocate_response(
                         egui::vec2(self.panel_width, self.panel_height),
                         egui::Sense::hover()
@@ -577,26 +751,11 @@ impl eframe::App for FixedPanelsApp {
                     // Рисуем рамку правой панели
                     ui.painter().rect_stroke(
                         right_response.rect,
-                        5.0,
-                        egui::Stroke::new(2.0, egui::Color32::from_rgb(128, 0, 128))
+                        1.0,
+                        egui::Stroke::new(0.1, egui::Color32::WHITE)
                     );
                     
-                    // Содержимое правой панели
-                    ui.allocate_ui_at_rect(right_response.rect, |ui| {
-                        ui.vertical_centered(|ui| {
-                            ui.heading("Правая панель");
-                            ui.separator();
-                            ui.label(format!("{} × {} px", self.panel_width, self.panel_height));
-                            ui.separator();
-                            if ui.button("Подключить").clicked() {}
-                            if ui.button("Отключить").clicked() {}
-                            if ui.button("Калибровка").clicked() {}
-                            ui.separator();
-                            ui.label("Статус:");
-                            ui.label("✓ USB подключен");
-                            ui.label("⚠ Двигатель выкл.");
-                        });
-                    });
+                    
                 });
             });
         });
