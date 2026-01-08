@@ -55,7 +55,7 @@ impl FixedPanelsApp {
             
             // Ширины трех секций верхней центральной области
             section1_width: 195.0,
-            section2_width: 390.0,
+            section2_width: 260.0,
             section3_width: 195.0,
             
             // Ширина нижней центральной панели (теперь независимая!)
@@ -290,148 +290,192 @@ impl eframe::App for FixedPanelsApp {
                                 });
                             });
                             
-                            // Секция 2
-let sec2_response = ui.allocate_response(
-    egui::vec2(self.section2_width, self.top_height),
-    egui::Sense::hover()
-);
-
-ui.painter().rect_stroke(
-    sec2_response.rect,
-    1.0,
-    egui::Stroke::new(0.1, egui::Color32::WHITE)
-);
-
-ui.allocate_ui_at_rect(sec2_response.rect, |ui| {
-    // Разделяем панель на 2 колонки
-    ui.columns(2, |columns| {
-        // ОБЩИЕ ПАРАМЕТРЫ
-        let label_font_size = 12.0;
-        
-        // ЛЕВАЯ КОЛОНКА - Step
-        columns[0].vertical(|ui| {
-            // Step в одной строке
-            ui.horizontal(|ui| {
-                // Метка Step
-                ui.label(
-                    egui::RichText::new("Step")
-                        .size(label_font_size)
-                );
-                
-                ui.add_space(5.0);
-                
-                // LineEdit для ввода дроби
-                ui.add(
-                    egui::TextEdit::singleline(&mut self.step_value)
-                        .desired_width(60.0)
-                        .font(egui::TextStyle::Monospace)
-                        .hint_text("1/8")
-                );
-            });
-            
-            ui.add_space(5.0);
-            
-            // Ползунок для Step с отметками
-            let step_options = ["1/8", "1/4", "1/2", "1"];
-            
-            // Создаем ползунок с кастомными отметками
-            ui.horizontal(|ui| {
-                let slider_response = ui.add(
-                    egui::Slider::new(&mut self.step_index, 0..=3)
-                        .show_value(false)
-                        .text("")
-                );
-                
-                // Проверяем изменение ползунка
-                if slider_response.changed() {
-                    // Обновляем значение в LineEdit при движении ползунка
-                    self.step_value = step_options[self.step_index].to_string();
-                }
-                
-                // Обработка ввода в LineEdit
-                if ui.ctx().input(|i| i.key_pressed(egui::Key::Enter)) {
-                    // При нажатии Enter обновляем индекс на основе введенного значения
-                    if let Some(index) = step_options.iter().position(|&opt| opt == self.step_value) {
-                        self.step_index = index;
-                    }
-                }
-                
-                // Добавляем подписи значений под ползунком
-                ui.allocate_ui_at_rect(
-                    egui::Rect::from_min_max(
-                        slider_response.rect.min + egui::vec2(0.0, slider_response.rect.height() + 5.0),
-                        slider_response.rect.min + egui::vec2(slider_response.rect.width(), slider_response.rect.height() + 20.0)
-                    ),
-                    |ui| {
-                        ui.horizontal(|ui| {
-                            let step_count = step_options.len();
-                            for (i, &option) in step_options.iter().enumerate() {
-                                let x_pos = (i as f32 / (step_count - 1) as f32) * slider_response.rect.width();
-                                ui.put(
-                                    egui::Rect::from_min_size(
-                                        slider_response.rect.min + egui::vec2(x_pos - 10.0, 0.0),
-                                        egui::vec2(20.0, 15.0)
+                            let sec2_response = ui.allocate_response(
+                                egui::vec2(self.section2_width, self.top_height),
+                                egui::Sense::hover()
+                            );
+                            
+                            ui.painter().rect_stroke(
+                                sec2_response.rect,
+                                1.0,
+                                egui::Stroke::new(0.1, egui::Color32::WHITE)
+                            );
+                            
+                            ui.allocate_ui_at_rect(sec2_response.rect, |ui| {
+                                // Переменные для регулировки отступов
+                                let left_padding = 15.0;  // Отступ от левого края (можно менять)
+                                let top_padding = 8.0;    // Отступ от верхнего края (можно менять)
+                                
+                                // Создаем внутренний контейнер с отступами
+                                ui.allocate_ui_at_rect(
+                                    egui::Rect::from_min_max(
+                                        sec2_response.rect.min + egui::vec2(left_padding, top_padding),
+                                        sec2_response.rect.max
                                     ),
-                                    egui::Label::new(
-                                        egui::RichText::new(option)
-                                            .size(10.0)
-                                            .color(egui::Color32::GRAY)
-                                    )
+                                    |ui| {
+                                        ui.columns(2, |columns| {
+                                            // ОБЩИЕ ПАРАМЕТРЫ
+                                            let label_font_size = 12.0;
+                                            
+                                            // ЛЕВАЯ КОЛОНКА - Step
+                                            columns[0].vertical_centered(|ui| {
+                                                // Step и LineEdit в одной строке
+                                                ui.horizontal(|ui| {
+                                                    // Метка Step
+                                                    ui.label(
+                                                        egui::RichText::new("Step")
+                                                            .size(label_font_size)
+                                                    );
+                                                    
+                                                    ui.add_space(5.0);
+                                                    
+                                                    // LineEdit для ввода дроби
+                                                    ui.add(
+                                                        egui::TextEdit::singleline(&mut self.step_value)
+                                                            .desired_width(60.0)
+                                                            .font(egui::TextStyle::Monospace)
+                                                            .hint_text("1/8")
+                                                    );
+                                                });
+                                                
+                                                ui.add_space(5.0);
+                                                
+                                                // Ползунок для Step с отметками
+                                                let step_options = ["1/8", "1/4", "1/2", "1"];
+                                                
+                                                // Ползунок
+                                                let slider_response = ui.add(
+                                                    egui::Slider::new(&mut self.step_index, 0..=3)
+                                                        .show_value(false)
+                                                        .text("")
+                                                );
+                                                
+                                                // Проверяем изменение ползунка
+                                                if slider_response.changed() {
+                                                    // Обновляем значение в LineEdit при движении ползунка
+                                                    self.step_value = step_options[self.step_index].to_string();
+                                                }
+                                                
+                                                // Обработка ввода в LineEdit
+                                                if ui.ctx().input(|i| i.key_pressed(egui::Key::Enter)) {
+                                                    // При нажатии Enter обновляем индекс на основе введенного значения
+                                                    if let Some(index) = step_options.iter().position(|&opt| opt == self.step_value) {
+                                                        self.step_index = index;
+                                                    }
+                                                }
+                                                
+                                                // Подписи значений под ползунком Step
+                                                ui.add_space(3.0);
+                                                ui.horizontal(|ui| {
+                                                    let slider_width = slider_response.rect.width();
+                                                    let slider_left = slider_response.rect.left();
+                                                    
+                                                    for (i, &option) in step_options.iter().enumerate() {
+                                                        let step_count = step_options.len();
+                                                        let x_pos = slider_left + (i as f32 / (step_count - 1).max(1) as f32) * slider_width;
+                                                        
+                                                        ui.put(
+                                                            egui::Rect::from_min_size(
+                                                                egui::pos2(x_pos - 15.0, ui.cursor().top()),
+                                                                egui::vec2(30.0, 15.0)
+                                                            ),
+                                                            egui::Label::new(
+                                                                egui::RichText::new(option)
+                                                                    .size(10.0)
+                                                                    .color(egui::Color32::GRAY)
+                                                            )
+                                                        );
+                                                    }
+                                                });
+                                            });
+                                            
+                                            // ПРАВАЯ КОЛОНКА - Speed
+                                            columns[1].vertical_centered(|ui| {
+                                                // Speed и LineEdit в одной строке
+                                                ui.horizontal(|ui| {
+                                                    // Метка Speed
+                                                    ui.label(
+                                                        egui::RichText::new("Speed")
+                                                            .size(label_font_size)
+                                                    );
+                                                    
+                                                    ui.add_space(5.0);
+                                                    
+                                                    // Поле ввода для Speed (LineEdit)
+                                                    ui.add(
+                                                        egui::TextEdit::singleline(&mut self.speed_value)
+                                                            .desired_width(40.0)
+                                                            .font(egui::TextStyle::Monospace)
+                                                            .hint_text("0.0")
+                                                    );
+                                                    
+                                                    // Метка "1/s"
+                                                    ui.label(
+                                                        egui::RichText::new("1/s")
+                                                            .size(11.0)
+                                                            .color(egui::Color32::GRAY)
+                                                    );
+                                                });
+                                                
+                                                ui.add_space(5.0);
+                                                
+                                                // Ползунок для Speed
+                                                let min_speed = 0.0;
+                                                let max_speed = 10.0;
+                                                
+                                                if let Ok(speed_num) = self.speed_value.parse::<f32>() {
+                                                    let mut speed_temp = speed_num.clamp(min_speed, max_speed);
+                                                    let speed_slider = egui::Slider::new(&mut speed_temp, min_speed..=max_speed)
+                                                        .show_value(false)
+                                                        .text("");
+                                                    
+                                                    let slider_response = ui.add(speed_slider);
+                                                    
+                                                    if slider_response.changed() {
+                                                        self.speed_value = format!("{:.1}", speed_temp);
+                                                    }
+                                                    
+                                                    // Подписи минимального и максимального значения под ползунком Speed
+                                                    ui.add_space(3.0);
+                                                    ui.horizontal(|ui| {
+                                                        let slider_width = slider_response.rect.width();
+                                                        let slider_left = slider_response.rect.left();
+                                                        
+                                                        // Минимальное значение (слева)
+                                                        ui.put(
+                                                            egui::Rect::from_min_size(
+                                                                egui::pos2(slider_left, ui.cursor().top()),
+                                                                egui::vec2(15.0, 15.0)
+                                                            ),
+                                                            egui::Label::new(
+                                                                egui::RichText::new("0")
+                                                                    .size(10.0)
+                                                                    .color(egui::Color32::GRAY)
+                                                            )
+                                                        );
+                                                        
+                                                        // Максимальное значение (справа)
+                                                        ui.put(
+                                                            egui::Rect::from_min_size(
+                                                                egui::pos2(slider_left + slider_width - 15.0, ui.cursor().top()),
+                                                                egui::vec2(15.0, 15.0)
+                                                            ),
+                                                            egui::Label::new(
+                                                                egui::RichText::new("10")
+                                                                    .size(10.0)
+                                                                    .color(egui::Color32::GRAY)
+                                                            )
+                                                        );
+                                                    });
+                                                } else {
+                                                    // Если значение некорректное, показываем placeholder
+                                                    ui.add_space(20.0); // Отступ вместо ползунка
+                                                }
+                                            });
+                                        });
+                                    }
                                 );
-                            }
-                        });
-                    }
-                );
-            });
-        });
-        
-        // ПРАВАЯ КОЛОНКА - Speed
-        columns[1].vertical(|ui| {
-            // Speed в одной строке
-            ui.horizontal(|ui| {
-                // Метка Speed
-                ui.label(
-                    egui::RichText::new("Speed")
-                        .size(label_font_size)
-                );
-                
-                ui.add_space(5.0);
-                
-                // Поле ввода для Speed (LineEdit)
-                ui.add(
-                    egui::TextEdit::singleline(&mut self.speed_value)
-                        .desired_width(60.0)
-                        .font(egui::TextStyle::Monospace)
-                        .hint_text("0.0")
-                );
-                
-                // Метка "1/s"
-                ui.label(
-                    egui::RichText::new("1/s")
-                        .size(label_font_size)
-                        .color(egui::Color32::GRAY)
-                );
-            });
-            
-            ui.add_space(5.0);
-            
-            // Ползунок для Speed
-            if let Ok(speed_num) = self.speed_value.parse::<f32>() {
-                let mut speed_temp = speed_num;
-                let speed_slider = egui::Slider::new(&mut speed_temp, 0.0..=10.0)
-                    .show_value(false)
-                    .text("");
-                
-                if ui.add(speed_slider).changed() {
-                    self.speed_value = format!("{:.1}", speed_temp);
-                }
-            } else {
-                // Если значение некорректное, показываем placeholder
-                ui.add_space(20.0); // Отступ вместо ползунка
-            }
-        });
-    });
-});
+                            });
                             
                             // Секция 3
                             let sec3_response = ui.allocate_response(
