@@ -29,36 +29,41 @@ struct FixedPanelsApp {
     
     // Ширина нижней центральной панели (теперь задается отдельно!)
     bottom_width: f32,
+    
+    // ДАННЫЕ ДЛЯ ЛЕВОЙ ПАНЕЛИ
+    positioner_name: String,  // Название позиционера
+    axis_name: String,        // Название оси
+
+    current_value: String,
+    destination_value: String,
+    is_moving: bool,
 }
 
 impl FixedPanelsApp {
     fn new() -> Self {
         Self {
             // Все размеры задаются здесь в одном месте
-            panel_width: 200.0,      // Ширина боковых панелей
-            panel_height: 210.0,     // Высота боковых панелей
-            top_height: 100.0,       // Высота верхней центральной области
-            bottom_height: 100.0,    // Высота нижней центральной области
+            panel_width: 120.0,      // Ширина боковых панелей
+            panel_height: 200.0,     // Высота боковых панелей
+            top_height: 80.0,       // Высота верхней центральной области
+            bottom_height: 120.0,    // Высота нижней центральной области
             
             // Ширины трех секций верхней центральной области
-            section1_width: 190.0,
-            section2_width: 400.0,
-            section3_width: 190.0,
+            section1_width: 195.0,
+            section2_width: 390.0,
+            section3_width: 195.0,
             
             // Ширина нижней центральной панели (теперь независимая!)
             bottom_width: 795.0,     // Можно задать любую ширину
+            
+            // Данные для левой панели
+            positioner_name: String::from("Positioner_001"),  // Начальное значение
+            axis_name: String::from("TrS"),                   // Название оси
+
+            current_value: String::from("0.0"),
+            destination_value: String::from("0.0"),
+            is_moving: false,
         }
-    }
-    
-    // Вычисляемые свойства
-    fn center_upper_width(&self) -> f32 {
-        // Сумма ширин верхних секций
-        self.section1_width + self.section2_width + self.section3_width
-    }
-    
-    fn total_width(&self) -> f32 {
-        // Общая ширина всех элементов (примерно)
-        self.panel_width * 2.0 + self.center_upper_width().max(self.bottom_width) + 20.0
     }
 }
 
@@ -71,7 +76,6 @@ impl Default for FixedPanelsApp {
 impl eframe::App for FixedPanelsApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            // Используем ScrollArea для горизонтальной прокрутки при необходимости
             egui::ScrollArea::horizontal().show(ui, |ui| {
                 // Главный горизонтальный контейнер для ВСЕХ панелей
                 ui.horizontal(|ui| {
@@ -84,25 +88,103 @@ impl eframe::App for FixedPanelsApp {
                     // Рисуем рамку левой панели
                     ui.painter().rect_stroke(
                         left_response.rect,
-                        5.0,
-                        egui::Stroke::new(2.0, egui::Color32::BLUE)
+                        2.0,
+                        egui::Stroke::new(0.1, egui::Color32::WHITE)
                     );
                     
                     // Содержимое левой панели
                     ui.allocate_ui_at_rect(left_response.rect, |ui| {
                         ui.vertical_centered(|ui| {
-                            ui.heading("Левая панель");
-                            ui.separator();
-                            ui.label(format!("{} × {} px", self.panel_width, self.panel_height));
-                            ui.separator();
-                            ui.label("Настройки");
-                            ui.label("Конфигурация");
-                            ui.label("Статус");
+                            let label_font_size = 12.0;
+                            let positioner_value_font_size = 14.0;
+                            let axis_value_font_size = 28.0;
+                            
+                            let positioner_width = 118.0;   // Ширина positioner Frame
+                            let positioner_height = 40.0;   // Высота positioner Frame
+                            let axis_width = 118.0;         // Ширина axis Frame  
+                            let axis_height = 50.0;         // Высота axis Frame 
+                            
+                            let button_width = 80.0;
+                            let button_height = 25.0;
+                            let button_font_size = 12.0;
+                            
+                            ui.label(
+                                egui::RichText::new("Positioner")
+                                    .size(label_font_size)
+                            );
+                            
+                            let pos_response = ui.allocate_response(
+                                egui::vec2(positioner_width, positioner_height),
+                                egui::Sense::hover()
+                            );
+                            
+                            // Рисуем Frame
+                            ui.painter().rect_filled(
+                                pos_response.rect,
+                                0.0, 
+                                egui::Color32::from_rgb(40, 40, 45)
+                            );
+                            
+                            ui.painter().rect_stroke(
+                                pos_response.rect,
+                                0.0,
+                                egui::Stroke::new(0.0, egui::Color32::GRAY)
+                            );
+                            
+                            ui.painter().text(
+                                pos_response.rect.center(),
+                                egui::Align2::CENTER_CENTER,
+                                &self.positioner_name,
+                                egui::FontId::proportional(positioner_value_font_size),
+                                egui::Color32::WHITE
+                            );
+                            
+                            ui.label(
+                                egui::RichText::new("Axis name")
+                                    .size(label_font_size)
+                            );
+                            
+                            let axis_response = ui.allocate_response(
+                                egui::vec2(axis_width, axis_height),
+                                egui::Sense::hover()
+                            );
+                            
+                            ui.painter().rect_filled(
+                                axis_response.rect,
+                                0.0,
+                                egui::Color32::from_rgb(40, 40, 45)
+                            );
+                            
+                            ui.painter().rect_stroke(
+                                axis_response.rect,
+                                0.0,
+                                egui::Stroke::new(0.0, egui::Color32::GRAY)
+                            );
+                            
+                            ui.painter().text(
+                                axis_response.rect.center(),
+                                egui::Align2::CENTER_CENTER,
+                                &self.axis_name,
+                                egui::FontId::proportional(axis_value_font_size),
+                                egui::Color32::WHITE
+                            );
+                            
+                            ui.add_space(15.0); 
+                            
+                            let button = egui::Button::new(
+                                egui::RichText::new("Disconnect")
+                                    .size(button_font_size)
+                                    .color(egui::Color32::WHITE)
+                            ).min_size(egui::vec2(button_width, button_height))
+                            .fill(egui::Color32::from_rgb(60, 60, 65));
+                            
+                            if ui.add(button).clicked() {
+                                println!("Попытка отключения от позиционера...");
+                            }
                         });
                     });
                     
-                    // Небольшой отступ между панелями
-                    ui.add_space(5.0);
+                    ui.add_space(1.0);
                     
                     // ЦЕНТРАЛЬНАЯ ОБЛАСТЬ
                     ui.vertical(|ui| {
@@ -116,16 +198,85 @@ impl eframe::App for FixedPanelsApp {
                             
                             ui.painter().rect_stroke(
                                 sec1_response.rect,
-                                5.0,
-                                egui::Stroke::new(2.0, egui::Color32::DARK_GREEN)
+                                1.0,
+                                egui::Stroke::new(0.1, egui::Color32::WHITE)
                             );
+                            let button_width = 80.0;
+                            let button_height = 25.0;
+                            let button_font_size = 12.0;
                             
                             ui.allocate_ui_at_rect(sec1_response.rect, |ui| {
-                                ui.vertical_centered(|ui| {
-                                    ui.heading("Секция 1");
-                                    ui.separator();
-                                    ui.label("5.2.2 Позиционеры");
-                                    ui.label("5.2.3 Текущая позиция");
+                                ui.columns(2, |columns| {
+                                    // ОБЩИЕ ПАРАМЕТРЫ
+                                    let label_font_size = 12.0;
+                                    let element_width = 80.0;
+                                    
+                                    // ЛЕВАЯ КОЛОНКА - Current
+                                    columns[0].vertical_centered(|ui| {
+                                        // Заголовок Current
+                                        ui.label(
+                                            egui::RichText::new("Current, mm")
+                                                .size(label_font_size)
+                                        );
+                                        
+                                        ui.add_space(5.0);
+                                        
+                                        // Current с текущим значением
+                                        ui.add(
+                                            egui::TextEdit::singleline(&mut self.current_value)
+                                                .desired_width(element_width)
+                                                .interactive(false) // Нельзя редактировать
+                                                
+                                        );
+                                        
+                                        ui.add_space(5.0);
+                                        
+                                        // Кнопка START
+                                        let button = egui::Button::new(
+                                            egui::RichText::new("START")
+                                                .size(button_font_size)
+                                                .color(egui::Color32::WHITE)
+                                        ).min_size(egui::vec2(button_width, button_height))
+                                        .fill(egui::Color32::from_rgb(60, 60, 65));
+
+                                        if ui.add(button).clicked() {
+                                            self.is_moving = true;
+                                            println!("Начато движение к: {}", self.destination_value);
+                                        }
+                                        
+                                    });
+                                    
+                                    // ПРАВАЯ КОЛОНКА - Destination
+                                    columns[1].vertical_centered(|ui| {
+                                        // Заголовок Destination
+                                        ui.label(
+                                            egui::RichText::new("Destination, mm")
+                                                .size(label_font_size)
+                                        );
+                                        
+                                        ui.add_space(5.0);
+                                        
+                                        // LineEdit БЕЗ Frame, с таким же размером
+                                        ui.add(
+                                            egui::TextEdit::singleline(&mut self.destination_value)
+                                                .desired_width(element_width)
+                                        );
+                                        
+                                        ui.add_space(5.0);
+                                        
+                                        // Кнопка STOP
+                                        let button = egui::Button::new(
+                                            egui::RichText::new("STOP")
+                                                .size(button_font_size)
+                                                .color(egui::Color32::WHITE)
+                                        ).min_size(egui::vec2(button_width, button_height))
+                                        .fill(egui::Color32::from_rgb(60, 60, 65));
+
+                                        if ui.add(button).clicked() {
+                                            self.is_moving = true;
+                                            println!("ОСТАНОВКА ДВИЖЕНИЯ");
+                                        }
+                                    });
                                 });
                             });
                             
@@ -241,62 +392,6 @@ impl eframe::App for FixedPanelsApp {
                         });
                     });
                 });
-            });
-            
-            ui.separator();
-            
-            // ИНФОРМАЦИЯ О РАЗМЕРАХ
-            ui.vertical(|ui| {
-                ui.heading("📏 Все размеры задаются независимо в методе new():");
-                
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.label("Боковые панели:");
-                        ui.monospace(format!("Ширина: {} px", self.panel_width));
-                        ui.monospace(format!("Высота: {} px", self.panel_height));
-                    });
-                    
-                    ui.add_space(20.0);
-                    
-                    ui.vertical(|ui| {
-                        ui.label("Центральная область (верх):");
-                        ui.monospace(format!("Секция 1: {} px", self.section1_width));
-                        ui.monospace(format!("Секция 2: {} px", self.section2_width));
-                        ui.monospace(format!("Секция 3: {} px", self.section3_width));
-                        ui.monospace(format!("Сумма: {} px", self.center_upper_width()));
-                        ui.monospace(format!("Высота: {} px", self.top_height));
-                    });
-                    
-                    ui.add_space(20.0);
-                    
-                    ui.vertical(|ui| {
-                        ui.label("Центральная область (низ):");
-                        ui.monospace(format!("Ширина: {} px", self.bottom_width));
-                        ui.monospace(format!("Высота: {} px", self.bottom_height));
-                    });
-                });
-                
-                ui.separator();
-                
-                // Сравнение размеров (информационно)
-                ui.label("📊 Сравнение размеров:");
-                if (self.center_upper_width() - self.bottom_width).abs() < 0.1 {
-                    ui.colored_label(egui::Color32::GREEN, 
-                        format!("✓ Ширина верхней области ({} px) равна ширине нижней области ({} px)", 
-                            self.center_upper_width(), self.bottom_width));
-                } else if self.center_upper_width() > self.bottom_width {
-                    ui.colored_label(egui::Color32::YELLOW, 
-                        format!("⚠ Верхняя область шире: {} px > {} px (разница: {} px)", 
-                            self.center_upper_width(), self.bottom_width,
-                            self.center_upper_width() - self.bottom_width));
-                } else {
-                    ui.colored_label(egui::Color32::YELLOW, 
-                        format!("⚠ Нижняя область шире: {} px > {} px (разница: {} px)", 
-                            self.bottom_width, self.center_upper_width(),
-                            self.bottom_width - self.center_upper_width()));
-                }
-                
-                ui.label(format!("Общая примерная ширина окна: {} px", self.total_width()));
             });
         });
     }
