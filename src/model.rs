@@ -53,11 +53,6 @@ pub struct AppConfig {
 impl Default for PositionerData {
     fn default() -> Self {
         let mut graph_data = Vec::new();
-        for i in 0..100 {
-            let x = i as f32 / 10.0;
-            graph_data.push((x.sin() + 1.0) * 500.0);
-        }
-        
         Self {
             positioner_name: String::from("Positioner_001"),
             axis_name: String::from("TrS"),

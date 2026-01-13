@@ -28,14 +28,6 @@ impl AppController {
         }
     }
     
-    pub fn update_graph_data(&mut self) {
-        let new_value = self.model.slider_current + (rand::random::<f32>() - 0.5) * 100.0;
-        self.model.graph_data.push(new_value);
-        
-        if self.model.graph_data.len() > 200 {
-            self.model.graph_data.remove(0);
-        }
-    }
     
     pub fn handle_start_movement(&mut self) {
         self.model.is_moving = true;
@@ -94,9 +86,7 @@ impl eframe::App for AppController {
             self.update_destination_from_string();
         }
         
-        self.update_graph_data();
-        
-        // Создаем View напрямую здесь
+        // Создаем View
         use crate::view::AppView;
         let mut view = AppView::new();
         view.render(ctx, self);
