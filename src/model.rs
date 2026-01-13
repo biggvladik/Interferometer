@@ -27,8 +27,6 @@ pub struct PositionerData {
     pub slider_current: f32,
     pub slider_destination: f32,
     
-    // Данные для графика
-    pub graph_data: Vec<f32>,
 }
 
 #[derive(Clone)]
@@ -52,7 +50,6 @@ pub struct AppConfig {
 
 impl Default for PositionerData {
     fn default() -> Self {
-        let mut graph_data = Vec::new();
         Self {
             positioner_name: String::from("Positioner_001"),
             axis_name: String::from("TrS"),
@@ -69,7 +66,6 @@ impl Default for PositionerData {
             slider_max: 2000.0,
             slider_current: 1250.0,
             slider_destination: 1500.0,
-            graph_data,
         }
     }
 }
