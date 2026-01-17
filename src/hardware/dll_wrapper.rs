@@ -1,10 +1,12 @@
-use std::ffi::{c_void, c_char, c_uint, c_int, c_float};
-use std::ptr;
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+
+use std::ffi::c_char;
 use std::sync::Arc;
 use std::sync::Mutex;
 use libloading::{Library, Symbol};
 
-use crate::types::*;
+use super::types::*;
 
 
 pub struct USMCDLL {
@@ -15,7 +17,7 @@ pub struct USMCDLL {
 type USMC_InitFn = unsafe extern "C" fn(devices: *mut USMC_Devices) -> u32;
 type USMC_DevicesFn = unsafe extern "C" fn(devices: *mut USMC_Devices) -> u32;
 type USMC_GetStateFn = unsafe extern "C" fn(device: u32, state: *mut USMC_State) -> u32;
-type USMC_StateFn = unsafe extern "C" fn(device: u32, state: *mut USMC_State) -> u32;
+/// type USMC_StateFn = unsafe extern "C" fn(device: u32, state: *mut USMC_State) -> u32;
 type USMC_SaveParametersToFlashFn = unsafe extern "C" fn(device: u32) -> u32;
 type USMC_SetCurrentPositionFn = unsafe extern "C" fn(device: u32, position: i32) -> u32;
 type USMC_GetModeFn = unsafe extern "C" fn(device: u32, mode: *mut USMC_Mode) -> u32;
@@ -54,22 +56,6 @@ impl USMCDLL {
         }
         
         Ok(result)
-    }
-
-    pub fn get_devices(&self, devices: &mut USMC_Devices) -> Result<u32, Box<dyn std::error::Error>> {
-        let func: Symbol<USMC_DevicesFn> = unsafe {
-            self.library.get(b"USMC_Devices")?
-        };
-        
-        Ok(unsafe { func(devices) })
-    }
-
-    pub fn get_state(&self, device: u32, state: &mut USMC_State) -> Result<u32, Box<dyn std::error::Error>> {
-        let func: Symbol<USMC_GetStateFn> = unsafe {
-            self.library.get(b"USMC_GetState")?
-        };
-        
-        Ok(unsafe { func(device, state) })
     }
 
     pub fn get_devices(&self, devices: &mut USMC_Devices) -> Result<u32, Box<dyn std::error::Error>> {

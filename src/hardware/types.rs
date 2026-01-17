@@ -1,5 +1,7 @@
-use std::ffi::{c_void, c_char, CStr};
-use std::mem;
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+
+use std::ffi::{c_char, CStr};
 use std::ptr;
 
 
