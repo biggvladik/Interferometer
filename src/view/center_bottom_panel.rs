@@ -11,10 +11,11 @@ impl PanelComponent for CenterBottomPanel {
             egui::Sense::hover()
         );
         
+        // Светлая граница панели
         ui.painter().rect_stroke(
             response.rect,
             1.0,
-            egui::Stroke::new(0.1, egui::Color32::WHITE)
+            egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210))
         );
         
         ui.allocate_ui_at_rect(response.rect, |ui| {
@@ -48,10 +49,18 @@ impl PanelComponent for CenterBottomPanel {
 
 impl CenterBottomPanel {
     fn render_slider_background(&mut self, ui: &mut egui::Ui, rect: egui::Rect) {
+        // Светлый фон слайдера
         ui.painter().rect_filled(
             rect,
             5.0,
-            egui::Color32::from_rgb(60, 60, 70)
+            egui::Color32::from_rgb(245, 245, 250) // Очень светлый серо-голубой
+        );
+        
+        // Небольшая тень для объема
+        ui.painter().rect_stroke(
+            rect,
+            5.0,
+            egui::Stroke::new(0.5, egui::Color32::from_rgb(220, 220, 225))
         );
     }
     
@@ -64,18 +73,18 @@ impl CenterBottomPanel {
         let current_x = value_to_x(controller.model.slider_current);
         let dest_x = value_to_x(controller.model.slider_destination);
         
-        // Линия между ползунками
+        // Линия между ползунками - яркий синий
         ui.painter().line_segment(
             [egui::pos2(current_x, rect.center().y), 
              egui::pos2(dest_x, rect.center().y)],
-            egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 150, 255))
+            egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 120, 215)) // Windows синий
         );
         
-        // Основная линия шкалы
+        // Основная линия шкалы - серый
         ui.painter().line_segment(
             [egui::pos2(rect.left(), rect.center().y), 
              egui::pos2(rect.right(), rect.center().y)],
-            egui::Stroke::new(2.0, egui::Color32::from_rgb(100, 100, 110))
+            egui::Stroke::new(2.0, egui::Color32::from_rgb(180, 180, 185))
         );
         
         // Деления шкалы
@@ -83,9 +92,9 @@ impl CenterBottomPanel {
         
         // Ползунки
         self.render_slider_knob(ui, current_x, rect.center().y, "Current", 
-                               egui::Color32::from_rgb(0, 200, 100));
+                               egui::Color32::from_rgb(16, 137, 62)); // Windows зеленый
         self.render_slider_knob(ui, dest_x, rect.center().y, "Destination",
-                               egui::Color32::from_rgb(0, 150, 255));
+                               egui::Color32::from_rgb(0, 120, 215)); // Windows синий
     }
     
     fn render_scale_marks(&mut self, ui: &mut egui::Ui, rect: egui::Rect) {
@@ -97,7 +106,7 @@ impl CenterBottomPanel {
             ui.painter().line_segment(
                 [egui::pos2(x, rect.center().y - height/2.0),
                  egui::pos2(x, rect.center().y + height/2.0)],
-                egui::Stroke::new(stroke_width, egui::Color32::from_rgb(140, 140, 150))
+                egui::Stroke::new(stroke_width, egui::Color32::from_rgb(120, 120, 125))
             );
             
             if i == 0 || i == 10 {
@@ -107,7 +116,7 @@ impl CenterBottomPanel {
                     egui::Align2::CENTER_TOP,
                     format!("{:.0}", value),
                     egui::FontId::proportional(11.0),
-                    egui::Color32::from_rgb(180, 180, 190)
+                    egui::Color32::from_rgb(60, 60, 65) // Темно-серый для текста
                 );
             }
         }
@@ -119,24 +128,63 @@ impl CenterBottomPanel {
             egui::vec2(24.0, 24.0)
         );
         
+        // Основной цвет кружка
         ui.painter().circle_filled(
             knob_rect.center(),
             12.0,
             color
         );
         
+        // Граница кружка
         ui.painter().circle_stroke(
             knob_rect.center(),
             12.0,
-            egui::Stroke::new(2.0, egui::Color32::WHITE)
+            egui::Stroke::new(2.0, egui::Color32::from_rgb(240, 240, 245)) // Светлая граница
         );
         
-        let label_color = match label {
-            "Current" => egui::Color32::from_rgb(0, 200, 150),
-            "Destination" => egui::Color32::from_rgb(0, 150, 255),
-            _ => egui::Color32::WHITE,
+        // Внутренний ободок для объема
+        ui.painter().circle_stroke(
+            knob_rect.center(),
+            10.5,
+            egui::Stroke::new(1.0, egui::Color32::WHITE)
+        );
+        
+        // Точка в центре
+        ui.painter().circle_filled(
+            knob_rect.center(),
+            3.0,
+            egui::Color32::WHITE
+        );
+        
+        // Цвета меток
+        let (label_color, shadow_color) = match label {
+            "Current" => (
+                egui::Color32::from_rgb(16, 137, 62), // Windows зеленый
+                egui::Color32::from_rgb(220, 240, 225) // Светло-зеленый фон
+            ),
+            "Destination" => (
+                egui::Color32::from_rgb(0, 120, 215), // Windows синий
+                egui::Color32::from_rgb(220, 235, 250) // Светло-голубой фон
+            ),
+            _ => (
+                egui::Color32::from_rgb(60, 60, 65),
+                egui::Color32::from_rgb(240, 240, 245)
+            ),
         };
         
+        // Фон метки
+        let label_bg_rect = egui::Rect::from_center_size(
+            egui::pos2(x, knob_rect.top() - 18.0),
+            egui::vec2(label.len() as f32 * 6.0 + 12.0, 18.0)
+        );
+        
+        ui.painter().rect_filled(
+            label_bg_rect,
+            3.0,
+            shadow_color
+        );
+        
+        // Текст метки
         ui.painter().text(
             egui::pos2(x, knob_rect.top() - 18.0),
             egui::Align2::CENTER_BOTTOM,

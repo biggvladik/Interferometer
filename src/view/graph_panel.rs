@@ -14,13 +14,13 @@ impl PanelComponent for GraphPanel {
         ui.painter().rect_stroke(
             response.rect,
             1.0,
-            egui::Stroke::new(1.0, egui::Color32::WHITE)
+            egui::Stroke::new(1.0, egui::Color32::from_rgb(200, 200, 210)) // Светлая граница
         );
         
         ui.painter().rect_filled(
             response.rect,
             0.0,
-            egui::Color32::from_rgb(30, 30, 35)
+            egui::Color32::from_rgb(250, 250, 255) // Светлый фон
         );
         
     }

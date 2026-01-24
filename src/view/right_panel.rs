@@ -14,7 +14,7 @@ impl PanelComponent for RightPanel {
         ui.painter().rect_stroke(
             response.rect,
             1.0,
-            egui::Stroke::new(0.1, egui::Color32::WHITE)
+            egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210)) // Светлая граница
         );
         
         ui.allocate_ui_at_rect(response.rect, |ui| {
@@ -28,6 +28,7 @@ impl PanelComponent for RightPanel {
                         ui.label(
                             egui::RichText::new("Repeat")
                                 .size(12.0)
+                                .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                         );
                         
                         ui.add_space(5.0);

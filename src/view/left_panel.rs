@@ -14,7 +14,7 @@ impl PanelComponent for LeftPanel {
         ui.painter().rect_stroke(
             response.rect,
             1.0,
-            egui::Stroke::new(0.1, egui::Color32::WHITE)
+            egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210)) // Светлая граница
         );
         
         ui.allocate_ui_at_rect(response.rect, |ui| {
@@ -35,6 +35,7 @@ impl PanelComponent for LeftPanel {
                 ui.label(
                     egui::RichText::new("Positioner")
                         .size(label_font_size)
+                        .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                 );
                 
                 let pos_response = ui.allocate_response(
@@ -45,13 +46,13 @@ impl PanelComponent for LeftPanel {
                 ui.painter().rect_filled(
                     pos_response.rect,
                     0.0, 
-                    egui::Color32::from_rgb(40, 40, 45)
+                    egui::Color32::from_rgb(240, 240, 245) // Светлый фон
                 );
                 
                 ui.painter().rect_stroke(
                     pos_response.rect,
                     0.0,
-                    egui::Stroke::new(0.0, egui::Color32::GRAY)
+                    egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210)) // Светлая граница
                 );
                 
                 ui.painter().text(
@@ -59,12 +60,13 @@ impl PanelComponent for LeftPanel {
                     egui::Align2::CENTER_CENTER,
                     &controller.model.positioner_name,
                     egui::FontId::proportional(positioner_value_font_size),
-                    egui::Color32::WHITE
+                    egui::Color32::from_rgb(60, 60, 65) // Темно-серый
                 );
                 
                 ui.label(
                     egui::RichText::new("Axis name")
                         .size(label_font_size)
+                        .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                 );
                 
                 let axis_response = ui.allocate_response(
@@ -75,13 +77,13 @@ impl PanelComponent for LeftPanel {
                 ui.painter().rect_filled(
                     axis_response.rect,
                     0.0,
-                    egui::Color32::from_rgb(40, 40, 45)
+                    egui::Color32::from_rgb(240, 240, 245) // Светлый фон
                 );
                 
                 ui.painter().rect_stroke(
                     axis_response.rect,
                     0.0,
-                    egui::Stroke::new(0.0, egui::Color32::GRAY)
+                    egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210)) // Светлая граница
                 );
                 
                 ui.painter().text(
@@ -89,7 +91,7 @@ impl PanelComponent for LeftPanel {
                     egui::Align2::CENTER_CENTER,
                     &controller.model.axis_name,
                     egui::FontId::proportional(axis_value_font_size),
-                    egui::Color32::WHITE
+                    egui::Color32::from_rgb(60, 60, 65) // Темно-серый
                 );
                 
                 ui.add_space(15.0);
@@ -99,7 +101,7 @@ impl PanelComponent for LeftPanel {
                         .size(button_font_size)
                         .color(egui::Color32::WHITE)
                 ).min_size(egui::vec2(button_width, button_height))
-                .fill(egui::Color32::from_rgb(60, 60, 65));
+                .fill(egui::Color32::from_rgb(200, 80, 80)); // Красный
                 
                 if ui.add(button).clicked() {
                     controller.handle_disconnect();

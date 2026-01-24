@@ -23,7 +23,7 @@ impl CenterTopPanel {
     fn render_section1(&mut self, ui: &mut egui::Ui, controller: &mut AppController) {
         let sec1_frame = egui::Frame::none()
             .inner_margin(4.0)
-            .stroke(egui::Stroke::new(0.1, egui::Color32::WHITE));
+            .stroke(egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210))); // Светлая граница
         
         sec1_frame.show(ui, |ui| {
             ui.set_width(controller.config.section1_width);
@@ -42,6 +42,7 @@ impl CenterTopPanel {
                     ui.label(
                         egui::RichText::new("Current, mm")
                             .size(label_font_size)
+                            .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                     );
                     
                     ui.add_space(5.0);
@@ -63,7 +64,7 @@ impl CenterTopPanel {
                             .size(button_font_size)
                             .color(egui::Color32::WHITE)
                     ).min_size(egui::vec2(button_width, button_height))
-                    .fill(egui::Color32::from_rgb(60, 60, 65));
+                    .fill(egui::Color32::from_rgb(16, 137, 62)); // Windows зеленый
 
                     if ui.add(button).clicked() {
                         controller.handle_start_movement();
@@ -75,6 +76,7 @@ impl CenterTopPanel {
                     ui.label(
                         egui::RichText::new("Destination, mm")
                             .size(label_font_size)
+                            .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                     );
                     
                     ui.add_space(5.0);
@@ -96,7 +98,7 @@ impl CenterTopPanel {
                             .size(button_font_size)
                             .color(egui::Color32::WHITE)
                     ).min_size(egui::vec2(button_width, button_height))
-                    .fill(egui::Color32::from_rgb(60, 60, 65));
+                    .fill(egui::Color32::from_rgb(200, 80, 80)); // Красный
 
                     if ui.add(button).clicked() {
                         controller.handle_stop_movement();
@@ -114,7 +116,7 @@ impl CenterTopPanel {
                 top: 8.0,
                 bottom: 0.0,
             })
-            .stroke(egui::Stroke::new(0.1, egui::Color32::WHITE));
+            .stroke(egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210))); // Светлая граница
         
         sec2_frame.show(ui, |ui| {
             ui.set_width(controller.config.section2_width);
@@ -129,6 +131,7 @@ impl CenterTopPanel {
                         ui.label(
                             egui::RichText::new("Step")
                                 .size(label_font_size)
+                                .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                         );
                         
                         ui.add_space(5.0);
@@ -171,6 +174,7 @@ impl CenterTopPanel {
                         ui.label(
                             egui::RichText::new("Speed")
                                 .size(label_font_size)
+                                .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                         );
                         
                         ui.add_space(5.0);
@@ -185,7 +189,7 @@ impl CenterTopPanel {
                         ui.label(
                             egui::RichText::new("1/s")
                                 .size(11.0)
-                                .color(egui::Color32::GRAY)
+                                .color(egui::Color32::from_rgb(120, 120, 125)) // Светло-серый
                         );
                     });
                     
@@ -214,7 +218,7 @@ impl CenterTopPanel {
                     egui::Label::new(
                         egui::RichText::new(option)
                             .size(10.0)
-                            .color(egui::Color32::GRAY)
+                            .color(egui::Color32::from_rgb(100, 100, 105)) // Средний серый
                     )
                 );
             }
@@ -258,7 +262,7 @@ impl CenterTopPanel {
                 egui::Label::new(
                     egui::RichText::new("0")
                         .size(10.0)
-                        .color(egui::Color32::GRAY)
+                        .color(egui::Color32::from_rgb(100, 100, 105)) // Средний серый
                 )
             );
             
@@ -271,7 +275,7 @@ impl CenterTopPanel {
                 egui::Label::new(
                     egui::RichText::new("10")
                         .size(10.0)
-                        .color(egui::Color32::GRAY)
+                        .color(egui::Color32::from_rgb(100, 100, 105)) // Средний серый
                 )
             );
         });
@@ -280,7 +284,7 @@ impl CenterTopPanel {
     fn render_section3(&mut self, ui: &mut egui::Ui, controller: &mut AppController) {
         let sec3_frame = egui::Frame::none()
             .inner_margin(4.0)
-            .stroke(egui::Stroke::new(0.1, egui::Color32::WHITE));
+            .stroke(egui::Stroke::new(0.8, egui::Color32::from_rgb(200, 200, 210))); // Светлая граница
         
         sec3_frame.show(ui, |ui| {
             ui.set_width(controller.config.section3_width);
@@ -292,6 +296,7 @@ impl CenterTopPanel {
                     ui.label(
                         egui::RichText::new("Temperature")
                             .size(12.0)
+                            .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                     );
                     
                     ui.add_space(10.0);
@@ -312,6 +317,7 @@ impl CenterTopPanel {
                     ui.label(
                         egui::RichText::new("Voltage")
                             .size(12.0)
+                            .color(egui::Color32::from_rgb(60, 60, 65)) // Темно-серый
                     );
                     
                     ui.add_space(20.0);
